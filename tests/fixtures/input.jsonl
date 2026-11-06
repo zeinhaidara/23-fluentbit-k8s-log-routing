@@ -1,0 +1,5 @@
+{"log": "order service started", "kubernetes": {"pod_name": "checkout-7f8b9", "namespace_name": "shop", "labels": {"logging.example.com/backend": "es"}}}
+{"log": "upload finished", "kubernetes": {"pod_name": "uploader-1a2b3", "namespace_name": "media", "labels": {"logging.example.com/backend": "s3"}}}
+{"log": "payment event", "kubernetes": {"pod_name": "billing-9c8d7", "namespace_name": "finance", "labels": {"logging.example.com/backend": "splunk"}}}
+{"log": "unlabeled record", "kubernetes": {"pod_name": "legacy-0000", "namespace_name": "default", "labels": {}}}
+{"log": "unknown backend value", "kubernetes": {"pod_name": "weird-1111", "namespace_name": "default", "labels": {"logging.example.com/backend": "carrier-pigeon"}}}
