@@ -1,0 +1,40 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  KUBECONFORM_VERSION: v0.8.0
+  FLUENT_BIT_IMAGE: fluent/fluent-bit@sha256:4f0c43a18de9a29c3a573bfc786a2660fc0a81c40209d37926d76fc87df4f4d4
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Fluent Bit has no plain binary release with a published sha256 checksum file - only
+      # schema JSON assets are published on GitHub releases (checked before picking this
+      # approach). The official image is pinned by digest instead: Docker refuses to pull it if
+      # the content doesn't match ${FLUENT_BIT_IMAGE}'s sha256, the same guarantee a checksum
+      # file gives, just enforced by the registry pull itself.
+      - name: pull pinned fluent-bit image
+        run: docker pull "${FLUENT_BIT_IMAGE}"
+
+      - name: install kubeconform
+        run: |
+          curl -sSLO "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz"
+          echo "9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883  kubeconform-linux-amd64.tar.gz" | sha256sum -c -
+          tar -xzf kubeconform-linux-amd64.tar.gz
+          sudo mv kubeconform /usr/local/bin/kubeconform
+
+      - name: fluent-bit config and routing tests
+        run: bash tests/run.sh
+
+      - name: kubeconform (DaemonSet manifest)
+        run: kubeconform -summary -strict -kubernetes-version 1.31.0 deploy/daemonset.yaml
