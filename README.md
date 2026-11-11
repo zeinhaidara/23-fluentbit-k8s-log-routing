@@ -1,4 +1,4 @@
-# fluentbit-k8s-log-routing
+# Fluent Bit Kubernetes log routing
 
 A reusable Fluent Bit config and DaemonSet that tails every container's logs on a node,
 enriches each record with Kubernetes metadata, and routes it to one of three backends
@@ -102,7 +102,7 @@ that matters here: it tracks its read offset per file, so a pod restart resumes 
 re-shipping everything from the start of each log file (this is `tail`'s own built-in behavior,
 not something this config adds).
 
-## Tests
+## Validation
 
 ```bash
 bash tests/run.sh
@@ -133,7 +133,7 @@ fixture-based routing test described above, and `kubeconform` on the DaemonSet Y
 `kubernetes` filter's live metadata lookup against an API server has never been exercised -
 the routing test assumes that enrichment already happened and only tests what comes after it.
 
-## Known limits
+## Known limitations
 
 - Only three backends and one routing label, matching the problem statement exactly - no
   additional outputs, no multi-label routing, no templating beyond `${ENV_VAR}` substitution.
@@ -141,3 +141,9 @@ the routing test assumes that enrichment already happened and only tests what co
   switching to on-disk chunk buffering would need a writable `emptyDir`, not included here since
   it isn't used.
 - No retry or backpressure handling beyond what each output plugin already does on its own.
+
+## Runtime security
+
+Workloads use a non-root UID/GID, RuntimeDefault seccomp, a read-only root filesystem, no privilege escalation and no Linux capabilities. An `emptyDir` at `/tmp` supplies writable runtime storage. These are configuration defaults, validated with rendered manifests and schema checks in CI; no real cluster execution is claimed.
+
+Fluent Bit S3 staging under `/tmp` is ephemeral and lost on pod replacement. Host log paths remain read-only; the host must make required logs readable to UID/GID 1000. This repository does not prove those permissions on a real node.
