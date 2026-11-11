@@ -1,3 +1,7 @@
 .dev-context/
 *.log
 tmp/
+*.tfplan
+__pycache__/
+*.pyc
+memory/

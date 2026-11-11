@@ -115,6 +115,13 @@ spec:
       labels:
         app: fluent-bit
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       serviceAccountName: fluent-bit
       containers:
         - name: fluent-bit
@@ -137,6 +144,8 @@ spec:
               cpu: 200m
               memory: 128Mi
           volumeMounts:
+            - name: runtime
+              mountPath: /tmp
             - name: config
               mountPath: /fluent-bit/etc
               readOnly: true
@@ -147,6 +156,8 @@ spec:
               mountPath: /var/lib/docker/containers
               readOnly: true
       volumes:
+        - name: runtime
+          emptyDir: {}
         - name: config
           configMap:
             name: fluent-bit-config
